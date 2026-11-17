@@ -1,13 +1,12 @@
 """CDL Training Hub: Flask + SQLite. Set ADMIN_KEY and SECRET_KEY in production."""
-import os, sqlite3, json, csv, io, re, hmac
+import os, sqlite3, json, hmac
 from datetime import datetime, timezone
 from pathlib import Path
-from flask import Flask, request, jsonify, send_file, send_from_directory, Response
+from flask import Flask, request, jsonify, send_from_directory
 
 ROOT = Path(__file__).parent
 DB = Path(os.environ.get('CDL_DB_PATH', ROOT / 'data' / 'cdl.sqlite3'))
 ADMIN_KEY = os.environ.get('ADMIN_KEY', '')
-REGISTRATION_ENABLED = os.environ.get('REGISTRATION_ENABLED', 'false').lower() == 'true'
 app = Flask(__name__, static_folder='static', static_url_path='')
 app.config['MAX_CONTENT_LENGTH'] = 32 * 1024
 
@@ -20,15 +19,18 @@ def conn():
 def init():
     with conn() as db:
         db.executescript('''
-          CREATE TABLE IF NOT EXISTS trainings (id INTEGER PRIMARY KEY, date TEXT NOT NULL, topic TEXT NOT NULL, audience TEXT NOT NULL, original_hours INTEGER, output TEXT, facilitator TEXT, status TEXT NOT NULL DEFAULT 'open', capacity INTEGER NOT NULL DEFAULT 40, venue TEXT NOT NULL DEFAULT 'Venue to be confirmed', notes TEXT NOT NULL DEFAULT '');
-          CREATE TABLE IF NOT EXISTS registrations (id INTEGER PRIMARY KEY AUTOINCREMENT, training_id INTEGER NOT NULL REFERENCES trainings(id), name TEXT NOT NULL, email TEXT NOT NULL, phone TEXT, role TEXT NOT NULL, unit TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(training_id, email));
+          CREATE TABLE IF NOT EXISTS trainings (id INTEGER PRIMARY KEY, date TEXT NOT NULL, topic TEXT NOT NULL, audience TEXT NOT NULL, original_hours INTEGER, output TEXT, facilitator TEXT, status TEXT NOT NULL DEFAULT 'open', capacity INTEGER NOT NULL DEFAULT 40, venue TEXT NOT NULL DEFAULT 'CDL Room', notes TEXT NOT NULL DEFAULT '');
           CREATE TABLE IF NOT EXISTS announcements (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, body TEXT NOT NULL, date TEXT NOT NULL, active INTEGER NOT NULL DEFAULT 1);
         ''')
         if db.execute('SELECT COUNT(*) FROM trainings').fetchone()[0] == 0:
             for item in json.loads((ROOT/'data'/'trainings.json').read_text()):
-                db.execute('INSERT INTO trainings (id,date,topic,audience,original_hours,output,facilitator) VALUES (?,?,?,?,?,?,?)', item)
+                db.execute('INSERT INTO trainings (id,date,topic,audience,original_hours,output,facilitator,venue) VALUES (?,?,?,?,?,?,?,?)', [*item, 'CDL Room'])
+        name_map = {'Salim': 'Salim Juma', 'Umayra': 'Umayra M. Said', 'Ramadhan': 'Ramadhan Rai', 'Salum Simba': 'Salim Simba', 'ALL': 'Salim Juma, Umayra M. Said, Ramadhan Rai and Salim Simba'}
+        for old, new in name_map.items():
+            db.execute('UPDATE trainings SET facilitator=? WHERE facilitator=?', (new, old))
+        db.execute("UPDATE trainings SET venue='CDL Room' WHERE venue IS NULL OR venue='' OR venue='Venue to be confirmed'")
         if db.execute('SELECT COUNT(*) FROM announcements').fetchone()[0] == 0:
-            db.execute('INSERT INTO announcements (title,body,date) VALUES (?,?,?)', ('CDL training schedule published', 'Browse the CDL 2026–2027 training schedule. Registration will open once reliable storage is configured. All advertised Friday sessions run from 2:00 PM to 4:00 PM. Venues and extensions for longer workshops will be communicated separately.', '2026-11-17'))
+            db.execute('INSERT INTO announcements (title,body,date) VALUES (?,?,?)', ('CDL Friday training programme', 'Explore the CDL 2026–2027 programme. Friday sessions run from 2:00 PM to 4:00 PM at CDL Room. Any extensions for longer workshops will be announced separately.', '2026-11-17'))
 
 @app.get('/')
 def home(): return send_from_directory(ROOT/'static', 'index.html')
@@ -36,8 +38,8 @@ def home(): return send_from_directory(ROOT/'static', 'index.html')
 @app.get('/api/trainings')
 def trainings():
     with conn() as db:
-        rows = db.execute('SELECT t.*, (SELECT COUNT(*) FROM registrations r WHERE r.training_id=t.id) AS registered FROM trainings t ORDER BY date').fetchall()
-    return jsonify([dict(x, registration_enabled=REGISTRATION_ENABLED) for x in rows])
+        rows = db.execute('SELECT * FROM trainings ORDER BY date').fetchall()
+    return jsonify([dict(x) for x in rows])
 
 @app.get('/api/announcements')
 def announcements():
@@ -46,59 +48,19 @@ def announcements():
 
 def clean(value, limit): return str(value or '').strip()[:limit]
 
-@app.post('/api/register')
-def register():
-    if not REGISTRATION_ENABLED:
-        return jsonify(error='Online registration is temporarily unavailable. Please check back for updates.'), 503
-    data = request.get_json(silent=True) or {}
-    try: tid = int(data.get('training_id'))
-    except (TypeError,ValueError): return jsonify(error='Invalid training selected.'),400
-    name, email, phone, role, unit = [clean(data.get(k), n) for k,n in [('name',120),('email',180),('phone',40),('role',80),('unit',150)]]
-    if not name or not email or not role or not unit or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',email):
-        return jsonify(error='Please enter your name, valid email, role and school/unit.'),400
-    with conn() as db:
-        t = db.execute('SELECT * FROM trainings WHERE id=?',(tid,)).fetchone()
-        if not t: return jsonify(error='Training not found.'),404
-        if t['status'] != 'open': return jsonify(error='Registration for this session is closed.'),409
-        count = db.execute('SELECT COUNT(*) FROM registrations WHERE training_id=?',(tid,)).fetchone()[0]
-        if count >= t['capacity']: return jsonify(error='This training has reached its registration limit.'),409
-        try:
-            db.execute('INSERT INTO registrations(training_id,name,email,phone,role,unit,created_at) VALUES(?,?,?,?,?,?,?)',(tid,name,email.lower(),phone,role,unit,datetime.now(timezone.utc).isoformat()))
-        except sqlite3.IntegrityError:
-            return jsonify(error='This email is already registered for that training.'),409
-    return jsonify(message='Registration received successfully.', training_id=tid),201
-
 def authorized():
     supplied = request.headers.get('X-Admin-Key','')
     return bool(ADMIN_KEY) and hmac.compare_digest(supplied, ADMIN_KEY)
 
 def denied(): return jsonify(error='Admin access denied. Configure ADMIN_KEY on the server.'),401
 
-@app.get('/api/admin/registrations')
-def admin_regs():
-    if not authorized(): return denied()
-    with conn() as db:
-        rows=db.execute('SELECT r.*, t.topic,t.date FROM registrations r JOIN trainings t ON t.id=r.training_id ORDER BY r.created_at DESC').fetchall()
-        return jsonify([dict(x) for x in rows])
-
-@app.get('/api/admin/export.csv')
-def export():
-    if not authorized(): return denied()
-    with conn() as db:
-        rows=db.execute('SELECT r.id,t.date,t.topic,r.name,r.email,r.phone,r.role,r.unit,r.created_at FROM registrations r JOIN trainings t ON t.id=r.training_id ORDER BY t.date,r.name').fetchall()
-    sio=io.StringIO(); w=csv.writer(sio);w.writerow(['ID','Date','Training','Name','Email','Phone','Role','School / unit','Registered at']);w.writerows([tuple(r) for r in rows]);
-    return Response('\ufeff'+sio.getvalue(),mimetype='text/csv',headers={'Content-Disposition':'attachment; filename="cdl_registrations.csv"'})
-
 @app.patch('/api/admin/trainings/<int:tid>')
 def edit_training(tid):
     if not authorized(): return denied()
-    data=request.get_json(silent=True) or {}; allowed={'status','capacity','venue','notes'}
+    data=request.get_json(silent=True) or {}; allowed={'status','venue','notes'}
     fields={k:v for k,v in data.items() if k in allowed}
     if not fields:return jsonify(error='No editable fields provided.'),400
     if 'status' in fields and fields['status'] not in ('open','closed','cancelled'):return jsonify(error='Invalid status.'),400
-    if 'capacity' in fields:
-        try: fields['capacity']=int(fields['capacity']);assert 1<=fields['capacity']<=10000
-        except (TypeError,ValueError,AssertionError): return jsonify(error='Capacity must be 1–10000.'),400
     for k in ('venue','notes'):
         if k in fields:fields[k]=clean(fields[k],300)
     with conn() as db:
