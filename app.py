@@ -1,8 +1,9 @@
 """CDL Training Hub: Flask + SQLite. Set ADMIN_KEY and SECRET_KEY in production."""
-import os, sqlite3, json, hmac
+import os, sqlite3, json, hmac, io
+import qrcode
 from datetime import datetime, timezone
 from pathlib import Path
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, send_file, abort
 
 ROOT = Path(__file__).parent
 DB = Path(os.environ.get('CDL_DB_PATH', ROOT / 'data' / 'cdl.sqlite3'))
@@ -40,6 +41,31 @@ def trainings():
     with conn() as db:
         rows = db.execute('SELECT * FROM trainings ORDER BY date').fetchall()
     return jsonify([dict(x) for x in rows])
+
+
+def registration_forms():
+    entries = []
+    for filename in ('form_links_01_06.json', 'form_links_07_12.json', 'form_links_13_19.json', 'form_links_20_26.json'):
+        entries.extend(json.loads((ROOT / 'data' / filename).read_text()))
+    return {int(x['id']): x['url'] for x in entries}
+
+@app.get('/api/forms')
+def forms():
+    return jsonify(registration_forms())
+
+@app.get('/api/qr/<int:training_id>.png')
+def workshop_qr(training_id):
+    url = registration_forms().get(training_id)
+    if not url:
+        abort(404)
+    qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=10, border=4)
+    qr.add_data(url)
+    qr.make(fit=True)
+    image = qr.make_image(fill_color='black', back_color='white')
+    buffer = io.BytesIO()
+    image.save(buffer, format='PNG')
+    buffer.seek(0)
+    return send_file(buffer, mimetype='image/png', download_name=f'cdl-registration-qr-{training_id}.png')
 
 @app.get('/api/announcements')
 def announcements():
