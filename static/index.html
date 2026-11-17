@@ -52,7 +52,7 @@ async function poster(id){
  x.font='23px Arial';x.fillText('suza-cdl-training.onrender.com',70,1015);
  try{
    const loadImage=src=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Failed to load image: '+src));img.src=src;});
-   const [qrImage,suzaLogo]=await Promise.all([loadImage('/api/qr/'+id+'.png'),loadImage('/api/suza-logo.png')]);
+   const [qrImage,suzaLogo]=await Promise.all([loadImage('/api/qr/'+id+'.png'),loadImage('/suza-logo.png')]);
    x.fillStyle='#fff';x.fillRect(775,752,255,255);x.drawImage(qrImage,783,760,239,239);
    x.fillStyle='#f7cf7d';x.font='bold 18px Arial';x.fillText('SCAN TO REGISTER',790,739);
    // Preserve the institutional emblem as supplied by the SUZA-hosted image.
@@ -61,7 +61,7 @@ async function poster(id){
    const width=suzaLogo.width*scale,height=suzaLogo.height*scale;
    x.drawImage(suzaLogo,790+(235-width)/2,23+(235-height)/2,width,height);
    const a=document.createElement('a');a.download='cdl-training-'+id+'-poster.png';a.href=c.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove();
- }catch(e){alert('The poster could not be downloaded because the SUZA logo or registration QR code did not load. Please try again.')}
+ }catch(e){alert('Poster download failed because an image could not be loaded. Refresh the page and try again.')}
 }
 const breaks=[['04 Dec 2026','Continuous assessments'],['18 Dec 2026','Convocation week'],['25 Dec 2026','Christmas Day'],['01 Jan 2027','New Year’s Day'],['08 Jan 2027','Continuous assessments'],['12–19 Feb 2027','Semester 1 examinations'],['26 Feb–26 Mar 2027','Short vacation'],['23 Apr 2027','Continuous assessments'],['28 May 2027','Continuous assessments'],['02–09 Jul 2027','Semester 2 examinations'],['16 Jul 2027','Short vacation'],['06–13 Aug 2027','Health programme examinations'],['24 Sep–01 Oct 2027','Supplementary / special examinations']];$('breaks').innerHTML=breaks.map(x=>'<div><b>'+safe(x[0])+'</b><br>'+safe(x[1])+'</div>').join('');
 $('adminlink').onclick=e=>{$('admin').classList.toggle('open')};function adminHead(){return {'X-Admin-Key':$('adminkey').value}}
