@@ -28,7 +28,7 @@ def init():
             for item in json.loads((ROOT/'data'/'trainings.json').read_text()):
                 db.execute('INSERT INTO trainings (id,date,topic,audience,original_hours,output,facilitator) VALUES (?,?,?,?,?,?,?)', item)
         if db.execute('SELECT COUNT(*) FROM announcements').fetchone()[0] == 0:
-            db.execute('INSERT INTO announcements (title,body,date) VALUES (?,?,?)', ('Registration is now available', 'Browse the CDL 2026–2027 training schedule and reserve your place. All advertised Friday sessions run from 2:00 PM to 4:00 PM. Venues and any extensions for longer workshops will be communicated separately.', '2026-11-17'))
+            db.execute('INSERT INTO announcements (title,body,date) VALUES (?,?,?)', ('CDL training schedule published', 'Browse the CDL 2026–2027 training schedule. Registration will open once reliable storage is configured. All advertised Friday sessions run from 2:00 PM to 4:00 PM. Venues and extensions for longer workshops will be communicated separately.', '2026-11-17'))
 
 @app.get('/')
 def home(): return send_from_directory(ROOT/'static', 'index.html')
