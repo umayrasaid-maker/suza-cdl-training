@@ -28,7 +28,7 @@ function draw(){let q=$('search').value.toLowerCase();let f=$('filter').value;le
 async function refresh(){try{const [trainingData,forms]=await Promise.all([api('/api/trainings'),api('/api/forms')]);sessions=trainingData;registrationLinks=forms;draw();$('editid').innerHTML=sessions.map(t=>'<option value="'+t.id+'">'+safe(t.date)+' · '+safe(t.topic)+'</option>').join('')}catch(e){$('cards').textContent='Could not load workshops and registration links. Please refresh the page.'}}
 async function announcements(){try{let data=await api('/api/announcements');$('annlist').innerHTML=data.length?data.map(x=>'<div class="ann"><strong>'+safe(x.title)+'</strong><div class="meta">'+pretty(x.date)+'</div><p>'+safe(x.body)+'</p></div>').join(''):'No announcements at this time.'}catch(e){$('annlist').textContent='Announcements currently unavailable.'}}
 $('cards').addEventListener('click',event=>{const button=event.target.closest('[data-poster]');if(!button||!$('cards').contains(button))return;poster(Number(button.dataset.poster));});
-function poster(id){
+async function poster(id){
  const t=sessions.find(x=>x.id===id);if(!t)return;
  const c=document.createElement('canvas');c.width=c.height=1080;const x=c.getContext('2d');
  x.fillStyle='#11394a';x.fillRect(0,0,1080,1080);x.fillStyle='#036d60';x.fillRect(0,0,1080,18);
@@ -38,8 +38,9 @@ function poster(id){
  x.fillStyle='#ffd58a';x.font='bold 27px Arial';x.fillText('FRIDAY DIGITAL SKILLS SERIES',70,215);
  x.fillStyle='white';x.font='bold 58px Arial';
  let words=t.topic.split(' '),lines=[],line='';
- for(const w of words){const test=(line?line+' ':'')+w;if(x.measureText(test).width>910){lines.push(line);line=w}else line=test}
- lines.push(line);lines.forEach((txt,i)=>x.fillText(txt,70,330+i*73));
+ for(const w of words){const test=(line?line+' ':'')+w;if(x.measureText(test).width>910){if(line)lines.push(line);line=w}else line=test}
+ if(line)lines.push(line);
+ lines.forEach((txt,i)=>x.fillText(txt,70,330+i*73));
  let y=480+Math.max(0,lines.length-2)*65;
  x.font='bold 36px Arial';x.fillStyle='#f7cf7d';x.fillText(pretty(t.date),70,y);
  x.fillStyle='#fff';x.font='30px Arial';x.fillText('2:00–4:00 PM  |  Zanzibar time',70,y+55);
@@ -47,11 +48,15 @@ function poster(id){
  x.fillText('Facilitator: '+t.facilitator,70,y+110);
  x.font='28px Arial';x.fillText('Venue: '+(t.venue||'CDL Room'),70,y+160);
  x.fillStyle='#f7cf7d';x.font='bold 34px Arial';x.fillText('LEARN · PRACTISE · CREATE',70,925);
- x.fillStyle='#e0f5f0';x.font='25px Arial';x.fillText('Training details & registration:',70,976);
+ x.fillStyle='#e0f5f0';x.font='25px Arial';x.fillText('Scan the QR code to register',70,976);
  x.font='23px Arial';x.fillText('suza-cdl-training.onrender.com',70,1015);
  try{
-  const a=document.createElement('a');a.download='cdl-training-'+id+'-poster.png';a.href=c.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove();
- }catch(e){alert('Could not download the poster. Please try again.')}
+   const img=new Image();
+   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src='/api/qr/'+id+'.png'});
+   x.fillStyle='#fff';x.fillRect(775,752,255,255);x.drawImage(img,783,760,239,239);
+   x.fillStyle='#f7cf7d';x.font='bold 18px Arial';x.fillText('SCAN TO REGISTER',790,739);
+   const a=document.createElement('a');a.download='cdl-training-'+id+'-poster.png';a.href=c.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove();
+ }catch(e){alert('The poster could not be downloaded because the QR code failed to load. Please try again.')}
 }
 const breaks=[['04 Dec 2026','Continuous assessments'],['18 Dec 2026','Convocation week'],['25 Dec 2026','Christmas Day'],['01 Jan 2027','New Year’s Day'],['08 Jan 2027','Continuous assessments'],['12–19 Feb 2027','Semester 1 examinations'],['26 Feb–26 Mar 2027','Short vacation'],['23 Apr 2027','Continuous assessments'],['28 May 2027','Continuous assessments'],['02–09 Jul 2027','Semester 2 examinations'],['16 Jul 2027','Short vacation'],['06–13 Aug 2027','Health programme examinations'],['24 Sep–01 Oct 2027','Supplementary / special examinations']];$('breaks').innerHTML=breaks.map(x=>'<div><b>'+safe(x[0])+'</b><br>'+safe(x[1])+'</div>').join('');
 $('adminlink').onclick=e=>{$('admin').classList.toggle('open')};function adminHead(){return {'X-Admin-Key':$('adminkey').value}}
