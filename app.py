@@ -1,6 +1,5 @@
 """CDL Training Hub: Flask + SQLite. Set ADMIN_KEY and SECRET_KEY in production."""
 import os, sqlite3, json, hmac, io
-from urllib.request import Request, urlopen
 import qrcode
 from datetime import datetime, timezone
 from pathlib import Path
@@ -68,26 +67,6 @@ def workshop_qr(training_id):
     buffer.seek(0)
     return send_file(buffer, mimetype='image/png', download_name=f'cdl-registration-qr-{training_id}.png')
 
-
-# The SUZA emblem is served from an official SUZA journal asset through our
-# same-origin endpoint so it can safely be included in downloaded canvas images.
-SUZA_LOGO_URL = 'https://journals.suza.ac.tz/public/journals/1/pageHeaderLogoImage_en.png'
-_logo_cache = None
-
-@app.get('/api/suza-logo.png')
-def suza_logo():
-    global _logo_cache
-    if _logo_cache is None:
-        try:
-            req = Request(SUZA_LOGO_URL, headers={'User-Agent': 'SUZA-CDL-Training/1.0'})
-            with urlopen(req, timeout=12) as response:
-                data = response.read(2 * 1024 * 1024 + 1)
-                if len(data) > 2 * 1024 * 1024 or not data.startswith(b'\\x89PNG\\r\\n\\x1a\\n'):
-                    abort(502, description='The institutional emblem could not be loaded.')
-                _logo_cache = data
-        except Exception:
-            abort(502, description='The institutional emblem is temporarily unavailable.')
-    return send_file(io.BytesIO(_logo_cache), mimetype='image/png', max_age=86400)
 
 @app.get('/api/announcements')
 def announcements():
