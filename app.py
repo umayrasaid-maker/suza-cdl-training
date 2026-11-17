@@ -7,6 +7,7 @@ from flask import Flask, request, jsonify, send_file, send_from_directory, Respo
 ROOT = Path(__file__).parent
 DB = Path(os.environ.get('CDL_DB_PATH', ROOT / 'data' / 'cdl.sqlite3'))
 ADMIN_KEY = os.environ.get('ADMIN_KEY', '')
+REGISTRATION_ENABLED = os.environ.get('REGISTRATION_ENABLED', 'false').lower() == 'true'
 app = Flask(__name__, static_folder='static', static_url_path='')
 app.config['MAX_CONTENT_LENGTH'] = 32 * 1024
 
@@ -36,7 +37,7 @@ def home(): return send_from_directory(ROOT/'static', 'index.html')
 def trainings():
     with conn() as db:
         rows = db.execute('SELECT t.*, (SELECT COUNT(*) FROM registrations r WHERE r.training_id=t.id) AS registered FROM trainings t ORDER BY date').fetchall()
-    return jsonify([dict(x) for x in rows])
+    return jsonify([dict(x, registration_enabled=REGISTRATION_ENABLED) for x in rows])
 
 @app.get('/api/announcements')
 def announcements():
@@ -47,6 +48,8 @@ def clean(value, limit): return str(value or '').strip()[:limit]
 
 @app.post('/api/register')
 def register():
+    if not REGISTRATION_ENABLED:
+        return jsonify(error='Online registration is temporarily unavailable. Please check back for updates.'), 503
     data = request.get_json(silent=True) or {}
     try: tid = int(data.get('training_id'))
     except (TypeError,ValueError): return jsonify(error='Invalid training selected.'),400
