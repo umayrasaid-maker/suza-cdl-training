@@ -1,0 +1,236 @@
+[
+  [
+    1,
+    "2026-11-27",
+    "AI prompt engineering for daily productivity",
+    "Academic and administrative staff, students",
+    2,
+    "A reusable prompt toolkit for emails, reports, lesson plans and routine tasks",
+    "Salim"
+  ],
+  [
+    2,
+    "2026-12-11",
+    "Using AI for everyday university work",
+    "Academic, administrative and support staff",
+    2,
+    "Tested prompts for work, with verification and privacy checks",
+    "Umayra"
+  ],
+  [
+    3,
+    "2027-01-15",
+    "Photography Skills and Techniques",
+    "Staff, lecturers, students, researchers, and communication teams",
+    3,
+    "A portfolio of 5 professionally captured photographs",
+    "Umayra"
+  ],
+  [
+    4,
+    "2027-01-22",
+    "Digital learning essentials for students",
+    "Students and student support staff",
+    2,
+    "Practice accessing materials, submitting assignments and checking feedback",
+    "Salum Simba"
+  ],
+  [
+    5,
+    "2027-01-29",
+    "Creating accessible learning materials",
+    "Lecturers, disability support and QA staff",
+    2,
+    "An accessible document or presentation",
+    "Umayra"
+  ],
+  [
+    6,
+    "2027-02-05",
+    "Building online quizzes and question banks",
+    "Lecturers and examination officers",
+    2,
+    "A quiz with feedback and appropriate settings",
+    "Umayra"
+  ],
+  [
+    7,
+    "2027-04-02",
+    "AI-powered teaching, research and office workflows",
+    "Lecturers, researchers, administrators and support staff",
+    2,
+    "One AI-assisted workflow with fact-checking and privacy safeguards",
+    "Ramadhan"
+  ],
+  [
+    8,
+    "2027-04-09",
+    "Collecting research data using digital forms",
+    "Researchers and postgraduate students",
+    2,
+    "A tested questionnaire with consent and branching",
+    "Salum Simba"
+  ],
+  [
+    9,
+    "2027-04-16",
+    "University announcements and digital content",
+    "PRO, communication officers and departmental representatives",
+    2,
+    "An announcement and a small content calendar",
+    "Ramadhan"
+  ],
+  [
+    10,
+    "2027-04-30",
+    "Assessments that require thinking in the age of AI",
+    "Lecturers, QA staff and examination coordinators",
+    2,
+    "An assessment task with a marking rubric",
+    "Ramadhan"
+  ],
+  [
+    11,
+    "2027-05-07",
+    "Managing documents and shared files",
+    "Administrators, secretaries and heads of units",
+    2,
+    "A shared filing structure and document tracking process",
+    "Salum Simba"
+  ],
+  [
+    12,
+    "2027-05-14",
+    "Using LMS data to identify students needing support",
+    "Lecturers, student advisers and QA staff",
+    2,
+    "A student support plan based on sample learning data",
+    "Ramadhan"
+  ],
+  [
+    13,
+    "2027-05-21",
+    "Creating effective PowerPoint presentations",
+    "Lecturers, students, researchers and presenters",
+    2,
+    "A redesigned 8–10-slide presentation using clear visual storytelling",
+    "Umayra"
+  ],
+  [
+    14,
+    "2027-06-04",
+    "Finding and organising academic sources",
+    "Researchers, lecturers, students and library staff",
+    2,
+    "A reference library organised using Zotero or a similar tool",
+    "Umayra"
+  ],
+  [
+    15,
+    "2027-06-11",
+    "Recording short instructional videos",
+    "Lecturers, laboratory instructors and student support staff",
+    2,
+    "A short captioned teaching or demonstration video",
+    "Salim"
+  ],
+  [
+    16,
+    "2027-06-18",
+    "Digital feedback and student satisfaction surveys",
+    "QA unit, academic departments and student affairs",
+    3,
+    "A feedback survey and action tracking template",
+    "Ramadhan"
+  ],
+  [
+    17,
+    "2027-06-25",
+    "Designing scientific posters for conferences",
+    "Researchers, postgraduate students and lecturers",
+    2,
+    "A conference-ready research poster with clear charts and findings",
+    "ALL"
+  ],
+  [
+    18,
+    "2027-07-23",
+    "Graphic design fundamentals for university communication",
+    "PRO, departmental staff, lecturers and students",
+    3,
+    "A professional infographic or academic event poster",
+    "Salim"
+  ],
+  [
+    19,
+    "2027-07-30",
+    "Digital research posters and presentations",
+    "Researchers, postgraduate students and lecturers",
+    3,
+    "A research poster or concise presentation",
+    "Salum Simba"
+  ],
+  [
+    20,
+    "2027-08-20",
+    "Adobe InDesign for reports and publications",
+    "PRO, CDL staff, administrators and researchers",
+    3,
+    "A professionally laid-out brochure, newsletter or report",
+    "Salim"
+  ],
+  [
+    21,
+    "2027-08-27",
+    "Canva for education and professional communication",
+    "Lecturers, students, PRO and administrative staff",
+    3,
+    "Three reusable templates for teaching and communication",
+    "Salum Simba"
+  ],
+  [
+    22,
+    "2027-09-03",
+    "Recording and editing professional video lessons",
+    "Lecturers, trainers and instructional content developers",
+    4,
+    "A captioned 3–5-minute video lesson with clear audio",
+    "Salim"
+  ],
+  [
+    23,
+    "2027-09-10",
+    "Using AI responsibly in research",
+    "Researchers, supervisors and postgraduate students",
+    2,
+    "A workflow covering verification, disclosure and confidentiality",
+    "Salum Simba"
+  ],
+  [
+    24,
+    "2027-09-17",
+    "Digital portfolios and professional profiles",
+    "Students, early career staff and career services",
+    2,
+    "A portfolio showcasing skills and achievements",
+    "Salim"
+  ],
+  [
+    25,
+    "2027-10-08",
+    "Designing short online courses and MOOCs",
+    "Lecturers, outreach staff and CDL course teams",
+    3,
+    "A short course outline with activities and assessments",
+    "Ramadhan"
+  ],
+  [
+    26,
+    "2027-10-15",
+    "Digital innovation clinic and showcase",
+    "All university units",
+    3,
+    "Teams demonstrate improvements and receive feedback",
+    "ALL"
+  ]
+]
