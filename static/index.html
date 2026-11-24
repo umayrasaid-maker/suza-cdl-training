@@ -61,7 +61,7 @@ async function poster(id){
  x.font='28px Arial';x.fillText('Venue: '+(t.venue||'CDL Room'),70,y+160);
  x.fillStyle='#f7cf7d';x.font='bold 34px Arial';x.fillText('LEARN · PRACTISE · CREATE',70,925);
  x.fillStyle='#e0f5f0';x.font='25px Arial';x.fillText('Scan the QR code to register',70,976);
- x.font='23px Arial';x.fillText('suza-cdl-training.onrender.com',70,1015);
+ // Website URL intentionally omitted from posters.
  try{
    const loadImage=src=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Failed to load image: '+src));img.src=src;});
    const [qrImage,suzaLogo]=await Promise.all([loadImage('/api/qr/'+id+'.png'),loadImage('/suza-logo.png')]);
